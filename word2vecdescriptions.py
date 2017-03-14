@@ -109,7 +109,6 @@ if __name__=='__main__':
     a = app_vector[weatherapp1] #weather app
     b = app_vector[weatherapp2] #weather app
 
-    from sklearn.metrics.pairwise import cosine_similarity
     print "similarity between %s, %s is %s" %( weatherapp1, weatherapp2, cosine_similarity(a.reshape(1,-1), b.reshape(1,
                                                                                                                    -1))[0,0])
 
