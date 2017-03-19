@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 from gensim.models import word2vec  # Force Install numpy(conda install -f numpy) if this scripts hangs when importing this
 from collections import Counter
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib import colors as mcolors
 
 def tokenize(text):
     tokens = [x.strip() for x in text.split(' ')]
@@ -70,6 +74,8 @@ def get_appvec(apptfidf_dict, vectors, num_features):
 
     return app_vector
 
+
+
 if __name__=='__main__':
     app_descriptions = pd.read_csv('app_descriptions_sample.csv')
     StopWords = set(stopwords.words("english"))
@@ -78,7 +84,7 @@ if __name__=='__main__':
     app_descriptions['Words'] = app_descriptions['Description'].apply(lambda x: tokenize(x))
 
 
-    num_features = 200
+    num_features = 100
 
     word2vecmodel = get_model(app_descriptions, num_features=num_features)
     ##All words
@@ -104,7 +110,7 @@ if __name__=='__main__':
     print "similarity between %s, %s is %s" %( datingapp, weatherapp1, cosine_similarity(a.reshape(1,-1),
                                                                                          b.reshape(1,-1))[0,0])
 
-    ##0.40323566
+    ## 0.30
 
     a = app_vector[weatherapp1] #weather app
     b = app_vector[weatherapp2] #weather app
@@ -112,4 +118,36 @@ if __name__=='__main__':
     print "similarity between %s, %s is %s" %( weatherapp1, weatherapp2, cosine_similarity(a.reshape(1,-1), b.reshape(1,
                                                                                                                    -1))[0,0])
 
-    ##0.97410025
+    ## 0.98
+
+    uniqueCategories = ['Entertainment', 'Simulation']
+
+    apps_to_plot = list(
+        app_descriptions[app_descriptions.Category.isin(uniqueCategories)]['App Bundle Id'])
+
+    X = np.array([app_vector[app] for app in apps_to_plot])
+
+    pca = PCA(n_components=2, whiten=True)
+
+    transformed_vecs = pca.fit_transform(X)
+
+    print pca.explained_variance_ratio_
+
+    app_descriptions.index = app_descriptions['App Bundle Id']
+    categories_dict = app_descriptions['Category'].to_dict()
+    colorMap = dict(zip(uniqueCategories, mcolors.cnames.keys()[:len(uniqueCategories)]))
+    colors = [colorMap[categories_dict[app]] for app in apps_to_plot]
+
+    fig = plt.figure(figsize=(20, 10))
+    ax = fig.add_subplot(111)
+
+    ax.scatter(transformed_vecs[:, 0], transformed_vecs[:, 1], c=colors, marker='o', s=200, alpha=0.7)
+    ax.axhline(y=0.25, color='r')
+
+    ax.set_xlim(-1, 0.6)
+    ax.set_ylim(-2, 2)
+
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+
+    fig.savefig("p_components.png")
