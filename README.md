@@ -1,2 +1,1 @@
-# word2vec-appdescriptions
-Word2Vec model on playstore/apple store descriptions
+Training a Word2Vec model on sample of ~500 playstore/apple store descriptions
